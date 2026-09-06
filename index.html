@@ -165,8 +165,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-
 <div class="main">
   <div class="kpi-row">
     <div class="kpi-card k1"><div class="kpi-label">Total Employees</div><div class="kpi-value" id="kv-total">—</div><div class="kpi-sub">Headcount</div></div>
-    <div class="kpi-card k2"><div class="kpi-label">Retention Rate</div><div class="kpi-value" id="kv-ret">—</div><div class="badge green" id="kv-ret-b">vs 2025 (92.54%)</div></div>
-    <div class="kpi-card k3"><div class="kpi-label">Turnover Rate (YTD)</div><div class="kpi-value" id="kv-turn">—</div><div class="badge green" id="kv-turn-b">vs 2025</div><div class="kpi-sub">Baseline 7.46% · Ambition &lt;5%</div></div>
+    <div class="kpi-card k2"><div class="kpi-label">Retention Rate</div><div class="kpi-value" id="kv-ret">—</div></div>
+    <div class="kpi-card k3"><div class="kpi-label">Turnover Rate (YTD)</div><div class="kpi-value" id="kv-turn">—</div></div>
     <div class="kpi-card k4"><div class="kpi-label">Recruiting</div><div class="kpi-value" id="kv-open">—</div><div class="kpi-sub">Open Positions</div></div>
     <div class="kpi-card k5"><div class="kpi-label">Hold Position</div><div class="kpi-value" id="kv-hold">—</div><div class="kpi-sub">On Hold</div></div>
   </div>
@@ -409,23 +409,21 @@ function render(m){
   $('kv-total').textContent = fN(d.total_emp);
   $('kv-ret').textContent   = fP(d.ret);
   $('kv-turn').textContent  = fP(d.turn);
-  const rb=$('kv-ret-b');
-  const retDiff = (d.ret - BASELINE_2025_RET);
-  rb.textContent = (retDiff>=0?'▲ +':'▼ ')+retDiff.toFixed(2)+'pp vs 2025';
-  rb.className = 'badge '+(retDiff>=0?'green':'red');
   $('kv-open').textContent  = d.open_pos;
   $('kv-hold').textContent  = d.hold_pos;
-  const tb=$('kv-turn-b');
-  const diff2025 = (d.turn - BASELINE_2025_TURN);
-  const arrow = diff2025<=0 ? '▼' : '▲';
-  const dTxt = arrow+' '+(diff2025>=0?'+':'')+diff2025.toFixed(2)+'pp vs 2025';
-  if(diff2025<0){tb.textContent=dTxt;tb.className='badge green';}
-  else{tb.textContent=dTxt;tb.className='badge red';}
+
+  // prev month kept for chart-card turnover MoM tag below
+  const loadedMonths = MONTHS.filter(mo=>allData[mo]);
+  const curIdx = loadedMonths.indexOf(m);
+  const prev = curIdx>0 ? allData[loadedMonths[curIdx-1]] : null;
   $('cs-turn').textContent=fP(d.turn);
   $('cs-ret').textContent =fP(d.ret);
   const ct=$('cs-turn-tag');
-  if(diff2025<0){ct.textContent='▼ '+diff2025.toFixed(2)+'pp vs 2025';ct.className='tag ok';}
-  else          {ct.textContent='▲ +'+diff2025.toFixed(2)+'pp vs 2025';ct.className='tag over';}
+  if(prev){
+    const turnMoM = d.turn - prev.turn;
+    if(turnMoM<=0){ct.textContent='▼ '+turnMoM.toFixed(2)+'pp MoM';ct.className='tag ok';}
+    else          {ct.textContent='▲ +'+turnMoM.toFixed(2)+'pp MoM';ct.className='tag over';}
+  } else { ct.textContent='—'; ct.className='tag ok'; }
 
   // Gender
   const gT=(d.male+d.female)||1;
